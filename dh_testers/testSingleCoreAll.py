@@ -16,9 +16,17 @@ Runs great, but slowly on multiprocessor systems.
 '''
 
 import doctest
+import inspect
 import sys
 import unittest
 import warnings
+
+def custom_formatwarning(msg, *args, **kwargs):
+    # ignore everything except the message
+    return str(msg) + '\n'
+
+warnings.formatwarning = custom_formatwarning
+
 
 from . import common
 
@@ -47,11 +55,12 @@ def main(testGroup=('test',), limit=None, verbosity=2):
     modGather = commonTest.ModuleGather()
     modules = modGather.load()
 
-    warnings.warn('looking for Test classes...\n')
+    # warnings.warn('looking for Test classes...\n')
     # look over each module and gather doc tests and unittests
     totalModules = 0
     sortMods = common.sortModules(modules)
     # print(dir(sortMods[0]))
+    globs = __import__(common.source_package_name()).__dict__.copy()
     
     for moduleObject in sortMods:
         unitTestCases = []
@@ -60,11 +69,20 @@ def main(testGroup=('test',), limit=None, verbosity=2):
                 break
         totalModules += 1
         # get Test classes in module
-        if not hasattr(moduleObject, 'Test'):
+        no_test_classes = True
+        for global_name, global_var in moduleObject.__dict__.items():
+            if not inspect.isclass(global_var):
+                continue
+            if issubclass(global_var, unittest.TestCase):
+                if 'test' in testGroup and 'External' not in global_name and 'Slow' not in global_name:
+                    unitTestCases.append(global_var)
+                    no_test_classes = False
+                
+        if (no_test_classes 
+                and '__init__' not in moduleObject.__file__
+                and 'test' not in moduleObject.__file__):
             warnings.warn('%s has no Test class' % moduleObject)
-        else:
-            if 'test' in testGroup:
-                unitTestCases.append(moduleObject.Test)
+
         if not hasattr(moduleObject, 'TestExternal'):
             pass
             #warnings.warn('%s has no TestExternal class\n' % module)
@@ -76,8 +94,10 @@ def main(testGroup=('test',), limit=None, verbosity=2):
         for testCase in unitTestCases:
             s2 = unittest.defaultTestLoader.loadTestsFromTestCase(testCase)
             s1.addTests(s2)
+
+        # add doc tests
         try:
-            s3 = commonTest.defaultDoctestSuite(moduleObject)
+            s3 = commonTest.defaultDoctestSuite(moduleObject, globs=globs)
             s1.addTests(s3)
         except ValueError:
             warnings.warn('%s cannot load Doctests' % moduleObject)
@@ -85,7 +105,6 @@ def main(testGroup=('test',), limit=None, verbosity=2):
 
         allLocals = [getattr(moduleObject, x) for x in dir(moduleObject)]
 
-        globs = __import__(common.source_package_name()).__dict__.copy()
         docTestOptions = (doctest.ELLIPSIS|doctest.NORMALIZE_WHITESPACE)
         testRunner.addDocAttrTestsToSuite(s1,
                                           allLocals,
@@ -97,7 +116,7 @@ def main(testGroup=('test',), limit=None, verbosity=2):
 
     testRunner.fixDoctests(s1)
 
-    warnings.warn('running Tests...\n')
+    # warnings.warn('running Tests...\n')
 
     with warnings.catch_warnings():
         warnings.simplefilter('ignore', RuntimeWarning)  # import modules...

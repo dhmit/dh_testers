@@ -20,7 +20,7 @@ import pathlib
 import types
 import warnings
 
-#import importlib
+import importlib
 with warnings.catch_warnings():
     warnings.simplefilter('ignore', DeprecationWarning)
     warnings.simplefilter('ignore', PendingDeprecationWarning)
@@ -31,10 +31,10 @@ from unittest.signals import registerResult
 
 from . import common
 
-def defaultDoctestSuite(module_name=None, globalProject=None):
-    if globalProject is not None:
-        globs = __import__(globalProject).__dict__.copy()
-    else:
+def defaultDoctestSuite(module_name=None, globs=None):
+    if globs is True:
+        globs = __import__(common.source_package_name()).__dict__.copy()
+    elif globs in (False, None):
         globs = {}
         
     docTestOptions = (doctest.ELLIPSIS|doctest.NORMALIZE_WHITESPACE)
@@ -129,10 +129,13 @@ class ModuleGather:
     >>> #_DOCS_SHOW print mg.modulePaths[0]
     D:\Web\eclipse\music21base\music21\volume.py
     '''
-    def __init__(self, *, start_module=None, useExtended=False, autoWalk=True, stack_level=1):
+    def __init__(self, *, start_module=None, useExtended=False, autoWalk=True, stack_level=None):
         if start_module is None:
-            frame_records = inspect.stack()[stack_level]
-            mod_name = common.likely_python_module(frame_records.filename)
+            if stack_level is not None:
+                frame_record = inspect.stack()[stack_level]
+            else:
+                frame_record = common.get_first_external_stackframe()
+            mod_name = common.likely_python_module(frame_record.filename)
             start_module = __import__(mod_name)
         dirParent = pathlib.Path(start_module.__file__).parent
         
@@ -279,7 +282,7 @@ class ModuleGather:
         if skip:
             return None
         
-        name = self._getName(fp)
+        name = common.likely_python_module(fp)
         # for importlib
         # name = self._getNamePeriod(fp, add_module_name='music21')
         
@@ -288,10 +291,10 @@ class ModuleGather:
             with warnings.catch_warnings():
                 # warnings.simplefilter('ignore', RuntimeWarning)
                 # importlib is messing with coverage...
-                mod = imp.load_source(name, fp)
+                mod = importlib.import_module(name)
                 # mod = importlib.import_module(name)
         except Exception as excp: # pylint: disable=broad-except
-            warnings.warn('failed import:' + str(fp) + '\n' +
+            warnings.warn('failed import: ' + name + ' at ' + str(fp) + '\n' +
                 '\tEXCEPTION:' + str(excp).strip())
             return None
 

@@ -108,9 +108,19 @@ def stripAddresses(textString, replacement="ADDRESS"):
 
 #-------------------------------------------------------------------------------
 
-def main_test(*testClasses, default_import=True, **kwargs):
+def main_test(*testClasses, 
+              run_test=False,
+              default_import=True, 
+              skip_doctest=False, 
+              verbose=False, 
+              module_relative=False,
+              import_plus_relative=False, 
+              display_names=False,
+              only_doctest=False,
+              fail_fast=True):
     '''
-    Takes as its arguments modules (or a string 'noDocTest' or 'verbose')
+    Takes as its arguments modules 
+    (or a string 'noDocTest' or 'verbose')
     and runs all of these modules through a unittest suite
 
     Unless 'noDocTest' is passed as a module, a docTest
@@ -136,8 +146,7 @@ def main_test(*testClasses, default_import=True, **kwargs):
     runAllTests = True
 
     # default -- is fail fast.
-    failFast = bool(kwargs.get('failFast', True))
-    if failFast:
+    if fail_fast:
         optionflags = (
             doctest.ELLIPSIS |
             doctest.NORMALIZE_WHITESPACE |
@@ -150,31 +159,19 @@ def main_test(*testClasses, default_import=True, **kwargs):
             )
 
     globs = None
-    if ('noDocTest' in testClasses or 'noDocTest' in sys.argv
-        or 'nodoctest' in sys.argv or bool(kwargs.get('noDocTest', False))):
-        skipDoctest = True
-    else:
-        skipDoctest = False
-
     # start with doc tests, then add unit tests
-    if skipDoctest:
+    if skip_doctest:
         # create a test suite for storage
         s1 = unittest.TestSuite()
     else:
         # create test suite derived from doc tests
         # here we use '__main__' instead of a module
-        if ('moduleRelative' in testClasses or
-                'moduleRelative' in sys.argv or
-                bool(kwargs.get('moduleRelative', False))):
-            pass
-        else:
+        if not module_relative:
             if default_import:
                 globs = __import__(common.source_package_name()).__dict__.copy()
             else:
                 globs = {}
-            if ('importPlusRelative' in testClasses or
-                    'importPlusRelative' in sys.argv or
-                    bool(kwargs.get('importPlusRelative', False))):
+            if import_plus_relative:
                 globs.update(common.get_first_external_stackframe()[0].f_globals)
 
         try:
@@ -190,17 +187,10 @@ def main_test(*testClasses, default_import=True, **kwargs):
 
 
     verbosity = 1
-    if ('verbose' in testClasses or
-            'verbose' in sys.argv or
-            bool(kwargs.get('verbose', False))):
+    if verbose:
         verbosity = 2 # this seems to hide most display
 
-    displayNames = False
-    if ('list' in sys.argv or
-            'display' in sys.argv or
-            bool(kwargs.get('display', False)) or
-            bool(kwargs.get('list', False))):
-        displayNames = True
+    if display_names:
         runAllTests = False
 
     runThisTest = None
@@ -209,18 +199,25 @@ def main_test(*testClasses, default_import=True, **kwargs):
         if arg not in ('list', 'display', 'verbose', 'nodoctest'):
             # run a test directly named in this module
             runThisTest = sys.argv[1]
-    if bool(kwargs.get('runTest', False)):
-        runThisTest = kwargs.get('runTest', False)
+    if run_test:
+        runThisTest = run_test
 
     # -f, --failfast
-    if ('onlyDocTest' in sys.argv or
-            'onlyDocTest' in testClasses or
-            bool(kwargs.get('onlyDocTest', False))
-            ):
+    if only_doctest:
         testClasses = [] # remove cases
+    elif not testClasses:
+        last_frame = common.get_first_external_stackframe()
+        last_frame_globals = last_frame[0].f_globals
+        testClasses = []
+        for k, v in last_frame_globals.items():
+            if not inspect.isclass(v):
+                continue
+            if issubclass(v, unittest.TestCase) and 'Slow' not in k and 'External' not in k:
+                testClasses.append(v)
+                
     for t in testClasses:
         if not isinstance(t, str):
-            if displayNames is True:
+            if display_names is True:
                 for tName in unittest.defaultTestLoader.getTestCaseNames(t):
                     print('Unit Test Method: %s' % tName)
             if runThisTest is not None:
@@ -246,7 +243,7 @@ def main_test(*testClasses, default_import=True, **kwargs):
             s1.addTests(s2)
 
     ### Add _DOC_ATTR tests...
-    if not skipDoctest:
+    if not skip_doctest:
         stacks = inspect.stack()
         if len(stacks) > 1:
             outerFrameTuple = stacks[1]
