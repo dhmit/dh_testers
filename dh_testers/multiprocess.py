@@ -42,14 +42,13 @@ ModuleResponse.__new__.__defaults__ = (None,) * len(ModuleResponse._fields)
 
 #-------------------------------------------------------------------------------
 
-def runOneModuleWithoutImp(args):
-    modGath = args[0] # modGather object
-    fp = args[1]
+def run_one_module_without_imp(arguments):
+    modGath, fp = arguments # modGather object, filepath
     verbosity = False
     timeStart = time.time()
+    moduleObject = modGath.get_module_without_imp(fp)
+    globs = common.import_main_module().__dict__.copy()
 
-    moduleObject = modGath.getModuleWithoutImp(fp)
-    
     #environLocal.printDebug('running %s \n' % fp)
     if moduleObject == 'skip':
         success = '%s is skipped \n' % fp
@@ -65,7 +64,7 @@ def runOneModuleWithoutImp(args):
     try:
         moduleName = modGath._getName(fp)
 
-        s1 = commonTest.defaultDoctestSuite()
+        s1 = commonTest.default_doctest_suite()
 
         # get Test classes in moduleObject
         if not hasattr(moduleObject, 'Test'):
@@ -76,7 +75,7 @@ def runOneModuleWithoutImp(args):
             s1.addTests(s2)
 
         try:
-            s3 = commonTest.defaultDoctestSuite(moduleObject)
+            s3 = commonTest.default_doctest_suite(moduleObject, globs=globs)
             s1.addTests(s3)
         except ValueError:
             # environLocal.printDebug('%s cannot load Doctests' % moduleObject)
@@ -108,9 +107,9 @@ def runOneModuleWithoutImp(args):
         return ModuleResponse("LargeException", fp, None, None, str(excp))
 
 
-def main_pool_runner(test_group=('test',)):
+def main(test_group=None):
     '''
-    Run all tests. Group can be test and/or external
+    Run all tests. test_group is not used (always the test suite)
     '''
     normalStdError = sys.stderr
 
@@ -119,7 +118,7 @@ def main_pool_runner(test_group=('test',)):
 
     print('Creating %d processes for multiprocessing' % poolSize)
 
-    modGather = commonTest.ModuleGather(useExtended=True, stack_level=2)
+    modGather = commonTest.ModuleGather(useExtended=True)
     
     maxTimeout = 200
     pathsToRun = modGather.modulePaths # [30:60]
@@ -130,8 +129,8 @@ def main_pool_runner(test_group=('test',)):
     # the overhead of returning is outweighed by the positive aspect of getting results immediately
     # unordered says that results can RETURN in any order; not that they'd be pooled out in any
     # order.
-    res = pool.imap_unordered(runOneModuleWithoutImp,
-                              ((modGather, fp) for fp in pathsToRun))
+    modGather_with_fp = [(modGather, fp) for fp in pathsToRun]
+    res = pool.imap_unordered(run_one_module_without_imp, modGather_with_fp)
 
     continueIt = True
     timeouts = 0
@@ -145,7 +144,7 @@ def main_pool_runner(test_group=('test',)):
                 print("")
             if newResult is not None:
                 if newResult.moduleName is not None:
-                    mn = newResult.moduleName
+                    mn = str(newResult.moduleName)
                     mn = mn.replace('___init__', '')
                     mn = mn.replace('_', '.')
                 else:
@@ -290,6 +289,6 @@ def printSummary(summaryOutput, timeStart, pathsToRun):
 
 if __name__ == '__main__':
     #mg = ModuleGather(useExtended=True)
-    #mm = mg.getModuleWithoutImp('trecento.capua')
+    #mm = mg.get_module_without_imp('trecento.capua')
     #print mm
-    main_pool_runner()
+    main()

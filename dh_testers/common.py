@@ -44,7 +44,7 @@ def get_first_external_stackframe():
     stack = inspect.stack()
     for frame in stack:
         fn = frame.filename
-        if 'dh_testers' not in fn:
+        if 'dh_testers' not in fn and 'python' not in fn:
             return frame
     return None
     
@@ -63,12 +63,19 @@ def source_package_name():
     Returns the source package (the first module without a dot)
     '''
     package_frame = get_first_external_stackframe()
+    if package_frame is None:
+        return None
     package_name = likely_python_module(package_frame.filename)
     project_package = package_name.split('.')[0]
     return project_package
         
+def import_main_module():
+    spm = source_package_name()
+    if spm is not None:
+        return __import__(spm)
+
     
-def sortModules(moduleList):
+def sort_modules(moduleList):
     '''
     Sort a lost of imported module names such that most recently modified is
     first.  In ties, last accesstime is used then module name
@@ -105,5 +112,5 @@ def cpus():
         return cpuCount
 
 if __name__ == '__main__':
-    from .testRunner import mainTest
-    mainTest()
+    from .testRunner import main_test
+    main_test()

@@ -17,12 +17,13 @@ omit_modules = [
 
 # THESE ARE NOT RELEVANT FOR coveralls.io -- edit .coveragerc to change that
 exclude_lines = [
-                r'.*mainTest\(',
+                r'.*main_test\(',
                 r'.*#\s*pragma:\s*no cover.*',
-                r'class TestExternal.*',
+                r'class .*External.*',
+                r'class .*Slow.*',
                 ]
 
-def getCoverage(overrideVersion=False):
+def get_coverage(overrideVersion=False):
     if overrideVersion or sys.version_info.minor == 5: 
         # run on Py 3.5 -- to get Py 3.6/3.7 timing...
         try:
@@ -37,7 +38,7 @@ def getCoverage(overrideVersion=False):
         cov = None
     return cov
 
-def stopCoverage(cov):
+def stop_coverage(cov):
     if cov is not None:
         cov.stop()
         cov.save()

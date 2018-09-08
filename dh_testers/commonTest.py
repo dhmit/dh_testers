@@ -31,7 +31,7 @@ from unittest.signals import registerResult
 
 from . import common
 
-def defaultDoctestSuite(module_name=None, globs=None):
+def default_doctest_suite(module_name=None, globs=None):
     if globs is True:
         globs = __import__(common.source_package_name()).__dict__.copy()
     elif globs in (False, None):
@@ -131,15 +131,20 @@ class ModuleGather:
     '''
     def __init__(self, *, start_module=None, useExtended=False, autoWalk=True, stack_level=None):
         if start_module is None:
+            frame_record = common.get_first_external_stackframe()
+            if frame_record is None and stack_level is None:
+                stack_level = 1
+            
             if stack_level is not None:
                 frame_record = inspect.stack()[stack_level]
-            else:
-                frame_record = common.get_first_external_stackframe()
+
             mod_name = common.likely_python_module(frame_record.filename)
             start_module = __import__(mod_name)
         dirParent = pathlib.Path(start_module.__file__).parent
         
-        self.start_module = start_module
+        # do not store start_module, since modules can't be pickled
+        # self.start_module = start_module
+        self.start_module_name = start_module.__name__
         self.dirParent = dirParent
         self.useExtended = useExtended
         self.modulePaths = []
@@ -182,7 +187,7 @@ class ModuleGather:
             for many core systems, like the MacPro, running slowest modules first
             helps there be fewer idle cores later
             '''
-            name = name[len(self.dirParent) + 1:]
+            name = name[len(str(self.dirParent)) + 1:]
             name = name.replace('.py', '')
             return (name in self.slowModules, name)
 
@@ -225,7 +230,10 @@ class ModuleGather:
         >>> #_DOCS_SHOW mg._getNamePeriod(name)
         'features.native'
         '''
-        fn = fp.replace(self.dirParent, '') # remove parent
+        if not isinstance(fp, str):
+            fp = str(fp)
+        
+        fn = fp.replace(str(self.dirParent), '') # remove parent
         parts = [x for x in fn.split(os.sep) if x]
         if parts[-1] == '__init__.py':
             parts.pop()
@@ -300,13 +308,16 @@ class ModuleGather:
 
         return mod
 
-    def getModuleWithoutImp(self, fp, startModule):
+    def get_module_without_imp(self, fp, start_module=None):
         '''
-        gets one module object from the file path without using Imp
+        gets one module object from the file path without using imp
         
-        startModule is the actual module object for the main project,
-        such as "dhFrame" or "gender_novels" or "music21"
+        start_module is the actual module object for the main project,
+        such as "dhFrame" or "gender_novels" or "music21".  If None,
+        it will try to import it.
         '''
+        if start_module is None:
+            start_module = common.import_main_module()
         skip = False
         for fnSkip in self.moduleSkip:
             if fp.endswith(fnSkip):
@@ -314,6 +325,7 @@ class ModuleGather:
                 break
         if skip:
             return "skip"
+
         for dirSkip in self.pathSkip:
             dirSkipSlash = os.sep + dirSkip + os.sep
             if dirSkipSlash in fp:
@@ -323,10 +335,12 @@ class ModuleGather:
             return "skip"
         moduleName = self._getNamePeriod(fp)
         moduleNames = moduleName.split('.')
-        currentModule = startModule
+        currentModule = start_module
         # print(currentModule, moduleName, fp)
         
         for thisName in moduleNames:
+            if not thisName.strip():
+                continue
             if hasattr(currentModule, thisName):
                 currentModule = object.__getattribute__(currentModule, thisName)
                 if not isinstance(currentModule, types.ModuleType):
@@ -340,5 +354,5 @@ class ModuleGather:
 
 
 if __name__ == '__main__':
-    from .testRunner import mainTest
-    mainTest()
+    from .testRunner import main_test
+    main_test()

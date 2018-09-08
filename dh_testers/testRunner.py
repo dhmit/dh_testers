@@ -25,7 +25,7 @@ import unittest
 
 ###### test related functions
 from . import common
-def addDocAttrTestsToSuite(suite,
+def add_doc_attr_tests_to_suite(suite,
                            moduleVariableLists,
                            outerFilename=None,
                            globs=False,
@@ -168,11 +168,17 @@ def main_test(*testClasses,
         # here we use '__main__' instead of a module
         if not module_relative:
             if default_import:
-                globs = __import__(common.source_package_name()).__dict__.copy()
+                main_mod = common.import_main_module()
+                if main_mod:
+                    globs = main_mod.__dict__.copy()
+                else:
+                    globs = {}
             else:
                 globs = {}
             if import_plus_relative:
-                globs.update(common.get_first_external_stackframe()[0].f_globals)
+                first_external = common.get_first_external_stackframe()
+                if first_external is not None:
+                    globs.update(first_external[0].f_globals)
 
         try:
             s1 = doctest.DocTestSuite(
@@ -207,13 +213,14 @@ def main_test(*testClasses,
         testClasses = [] # remove cases
     elif not testClasses:
         last_frame = common.get_first_external_stackframe()
-        last_frame_globals = last_frame[0].f_globals
-        testClasses = []
-        for k, v in last_frame_globals.items():
-            if not inspect.isclass(v):
-                continue
-            if issubclass(v, unittest.TestCase) and 'Slow' not in k and 'External' not in k:
-                testClasses.append(v)
+        if last_frame is not None:
+            last_frame_globals = last_frame[0].f_globals
+            testClasses = []
+            for k, v in last_frame_globals.items():
+                if not inspect.isclass(v):
+                    continue
+                if issubclass(v, unittest.TestCase) and 'Slow' not in k and 'External' not in k:
+                    testClasses.append(v)
                 
     for t in testClasses:
         if not isinstance(t, str):
@@ -252,7 +259,7 @@ def main_test(*testClasses,
         outerFrame = outerFrameTuple[0]
         outerFilename = outerFrameTuple[1]
         localVariables = list(outerFrame.f_locals.values())
-        addDocAttrTestsToSuite(s1, localVariables, outerFilename, globs, optionflags)
+        add_doc_attr_tests_to_suite(s1, localVariables, outerFilename, globs, optionflags)
 
     if runAllTests is True:
         fixDoctests(s1)

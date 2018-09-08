@@ -39,7 +39,7 @@ from . import coverageProject
 
 # this is designed to be None for all but one system and a Coverage() object
 # for one system.
-cov = coverageProject.getCoverage()
+cov = coverageProject.get_coverage()
 
 
 
@@ -50,7 +50,7 @@ def main(testGroup=('test',), limit=None, verbosity=2):
     >>> print(None)
     None
     '''
-    s1 = commonTest.defaultDoctestSuite(__name__)
+    s1 = commonTest.default_doctest_suite(__name__)
 
     modGather = commonTest.ModuleGather()
     modules = modGather.load()
@@ -58,9 +58,13 @@ def main(testGroup=('test',), limit=None, verbosity=2):
     # warnings.warn('looking for Test classes...\n')
     # look over each module and gather doc tests and unittests
     totalModules = 0
-    sortMods = common.sortModules(modules)
+    sortMods = common.sort_modules(modules)
     # print(dir(sortMods[0]))
-    globs = __import__(common.source_package_name()).__dict__.copy()
+    main_module = common.import_main_module()
+    if main_module:
+        globs = main_module.__dict__.copy()
+    else:
+        globs = {}
     
     for moduleObject in sortMods:
         unitTestCases = []
@@ -97,7 +101,7 @@ def main(testGroup=('test',), limit=None, verbosity=2):
 
         # add doc tests
         try:
-            s3 = commonTest.defaultDoctestSuite(moduleObject, globs=globs)
+            s3 = commonTest.default_doctest_suite(moduleObject, globs=globs)
             s1.addTests(s3)
         except ValueError:
             warnings.warn('%s cannot load Doctests' % moduleObject)
@@ -106,7 +110,7 @@ def main(testGroup=('test',), limit=None, verbosity=2):
         allLocals = [getattr(moduleObject, x) for x in dir(moduleObject)]
 
         docTestOptions = (doctest.ELLIPSIS|doctest.NORMALIZE_WHITESPACE)
-        testRunner.addDocAttrTestsToSuite(s1,
+        testRunner.add_doc_attr_tests_to_suite(s1,
                                           allLocals,
                                           outerFilename=moduleObject.__file__,
                                           globs=globs,
@@ -124,7 +128,7 @@ def main(testGroup=('test',), limit=None, verbosity=2):
         runner = unittest.TextTestRunner(verbosity=verbosity)
         finalTestResults = runner.run(s1)
 
-    coverageProject.stopCoverage(cov)
+    coverageProject.stop_coverage(cov)
 
     if (finalTestResults.errors or
             finalTestResults.failures or
