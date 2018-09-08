@@ -21,11 +21,6 @@ import types
 import warnings
 
 import importlib
-with warnings.catch_warnings():
-    warnings.simplefilter('ignore', DeprecationWarning)
-    warnings.simplefilter('ignore', PendingDeprecationWarning)
-    import imp
-
 import unittest.runner
 from unittest.signals import registerResult
 
