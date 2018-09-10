@@ -54,7 +54,7 @@ def source_file_path():
 
     :rtype: pathlib.Path    
     '''
-    package_name = source_package_name
+    package_name = source_package_name()
     package = __import__(package_name)
     return pathlib.Path(package.__file__).parent
     
