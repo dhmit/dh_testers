@@ -105,3 +105,9 @@ venv.bak/
 .project
 .pydevproject
 .settings/org.eclipse.core.resources.prefs
+
+# Pycharm project settings
+.idea
+
+# OSX DS_Store
+.DS_store
