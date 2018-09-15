@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Name:         treeYield.py
 # Purpose:      traverse a complex datastructure and yield elements
 #               that fit a given criteria
@@ -8,9 +8,10 @@
 #
 # Copyright:    Copyright © 2012 Michael Scott Cuthbert
 # License:      CC-BY (see StackOverflow link below)
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # http://stackoverflow.com/questions/12611337/
 #     recursively-dir-a-python-object-to-find-values-of-a-certain-type-or-with-a-cer
+
 
 class TreeYielder:
     def __init__(self, yieldValue=None):
@@ -67,7 +68,7 @@ class TreeYielder:
                 self.stackVals.pop()
 
         elif tObj in [list, tuple]:
-            for i,x in enumerate(obj):
+            for i, x in enumerate(obj):
                 listTuple = ('listLike', i)
                 self.stackVals.append(listTuple)
                 for z in self.run(x, memo=memo):
@@ -136,7 +137,6 @@ def testCode():
     for val in ty.run(myList):
         print(val, ty.currentLevel())
 
+
 if __name__ == "__main__":
-    pass
     testCode()
-    

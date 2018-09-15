@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Name:         commonTest.py
 # Purpose:      Things common to testing
 #
@@ -9,7 +9,7 @@
 # Copyright:    Copyright © 2009-18 MIT DH Lab, Michael Scott Cuthbert
 #               Forked from music21, Michael Scott Cuthbert
 # License:      BSD, see license.txt
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 '''
 Things that are common to testing...
 '''
@@ -26,13 +26,14 @@ from unittest.signals import registerResult
 
 from . import common
 
+
 def default_doctest_suite(module_name=None, globs=None):
     if globs is True:
         globs = __import__(common.source_package_name()).__dict__.copy()
     elif globs in (False, None):
         globs = {}
-        
-    docTestOptions = (doctest.ELLIPSIS|doctest.NORMALIZE_WHITESPACE)
+
+    docTestOptions = (doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE)
     kwArgs = {
               'globs': globs,
               'optionflags': docTestOptions,
@@ -44,9 +45,9 @@ def default_doctest_suite(module_name=None, globs=None):
         s1 = doctest.DocTestSuite(**kwArgs)
     return s1
 
+
 # from testRunner...
 # more silent type...
-
 class ProjectTestRunner(unittest.runner.TextTestRunner):
     def run(self, test):
         "Run the given test case or test suite."
@@ -67,7 +68,7 @@ class ProjectTestRunner(unittest.runner.TextTestRunner):
                     warnings.filterwarnings('module',
                             category=DeprecationWarning,
                             message=r'Please use assert\w+ instead.')
-            #startTime = time.time()
+            # startTime = time.time()
             startTestRun = getattr(result, 'startTestRun', None)
             if startTestRun is not None:
                 startTestRun()
@@ -77,8 +78,8 @@ class ProjectTestRunner(unittest.runner.TextTestRunner):
                 stopTestRun = getattr(result, 'stopTestRun', None)
                 if stopTestRun is not None:
                     stopTestRun()
-            #stopTime = time.time()
-        #timeTaken = stopTime - startTime
+            # stopTime = time.time()
+        # timeTaken = stopTime - startTime
         result.printErrors()
 
         expectedFails = unexpectedSuccesses = skipped = 0
@@ -113,7 +114,8 @@ class ProjectTestRunner(unittest.runner.TextTestRunner):
             pass
         return result
 
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 class ModuleGather:
     r'''
     Utility class for gathering and importing all modules in the project
@@ -124,19 +126,21 @@ class ModuleGather:
     >>> #_DOCS_SHOW print mg.modulePaths[0]
     D:\Web\eclipse\music21base\music21\volume.py
     '''
-    def __init__(self, *, start_module=None, useExtended=False, autoWalk=True, stack_level=None):
+
+    def __init__(self, *, start_module=None, useExtended=False,
+                 autoWalk=True, stack_level=None):
         if start_module is None:
             frame_record = common.get_first_external_stackframe()
             if frame_record is None and stack_level is None:
                 stack_level = 1
-            
+
             if stack_level is not None:
                 frame_record = inspect.stack()[stack_level]
 
             mod_name = common.likely_python_module(frame_record.filename)
             start_module = __import__(mod_name)
         dirParent = pathlib.Path(start_module.__file__).parent
-        
+
         # do not store start_module, since modules can't be pickled
         # self.start_module = start_module
         self.start_module_name = start_module.__name__
@@ -153,9 +157,11 @@ class ModuleGather:
         self.pathSkipExtended = self.pathSkip + []
 
         self.moduleSkip = [x.replace('/', os.sep) for x in self.moduleSkip]
-        self.moduleSkipExtended = [x.replace('/', os.sep) for x in self.moduleSkipExtended]
+        self.moduleSkipExtended = [x.replace('/', os.sep)
+                                    for x in self.moduleSkipExtended]
         self.pathSkip = [x.replace('/', os.sep) for x in self.pathSkip]
-        self.pathSkipExtended = [x.replace('/', os.sep) for x in self.pathSkipExtended]
+        self.pathSkipExtended = [x.replace('/', os.sep)
+                                    for x in self.pathSkipExtended]
         self.slowModules = [x.replace('/', os.sep) for x in self.slowModules]
 
         # search on init
@@ -195,17 +201,16 @@ class ModuleGather:
         else:
             self.modulePaths.sort()
 
-        #for p in self.modulePaths:
-        #    print p# self.modulePaths
         self.modulePaths.reverse()
 
     def _getName(self, fp):
         r'''
-        Given full file pathlib.Path, find a name for the module with _ as the separator.
+        Given full file pathlib.Path, find a name for the module
+        with _ as the separator.
 
         >>> from dh_testers import commonTest
         >>> mg = commonTest.ModuleGather(stack_level=0)
-        >>> #_DOCS_SHOW mg._getName(r'D:\Web\eclipse\music21base\music21\chord.py')
+        >>> #_DOCS_SHOW mg._getName(r'D:\music21base\music21\chord.py')
         'chord'
         '''
         fn = fp.replace(str(self.dirParent), '') # remove parent
@@ -227,7 +232,7 @@ class ModuleGather:
         '''
         if not isinstance(fp, str):
             fp = str(fp)
-        
+
         fn = fp.replace(str(self.dirParent), '') # remove parent
         parts = [x for x in fn.split(os.sep) if x]
         if parts[-1] == '__init__.py':
@@ -284,11 +289,11 @@ class ModuleGather:
                 break
         if skip:
             return None
-        
+
         name = common.likely_python_module(fp)
         # for importlib
         # name = self._getNamePeriod(fp, add_module_name='music21')
-        
+
         # print(name, os.path.dirname(fp))
         try:
             with warnings.catch_warnings():
@@ -297,8 +302,8 @@ class ModuleGather:
                 mod = importlib.import_module(name)
                 # mod = importlib.import_module(name)
         except Exception as excp: # pylint: disable=broad-except
-            warnings.warn('failed import: ' + name + ' at ' + str(fp) + '\n' +
-                '\tEXCEPTION:' + str(excp).strip())
+            warnings.warn('failed import: ' + name + ' at ' + str(fp) + '\n'
+                + '\tEXCEPTION:' + str(excp).strip())
             return None
 
         return mod
@@ -306,7 +311,7 @@ class ModuleGather:
     def get_module_without_imp(self, fp, start_module=None):
         '''
         gets one module object from the file path without using imp
-        
+
         start_module is the actual module object for the main project,
         such as "dhFrame" or "gender_novels" or "music21".  If None,
         it will try to import it.
@@ -332,7 +337,7 @@ class ModuleGather:
         moduleNames = moduleName.split('.')
         currentModule = start_module
         # print(currentModule, moduleName, fp)
-        
+
         for thisName in moduleNames:
             if not thisName.strip():
                 continue

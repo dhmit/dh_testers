@@ -16,10 +16,12 @@ def warn_with_traceback(message, category, filename, lineno, file=None, line=Non
     traceback.print_stack(file=log)
     log.write(warnings.formatwarning(message, category, filename, lineno, line))
 
+
 def main(test_group=None):
     warnings.showwarning = warn_with_traceback
     warnings.simplefilter("always")
     multiprocess.main(test_group)
+
 
 if __name__ == '__main__':
     main()

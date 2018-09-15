@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:         testRunner.py
 # Purpose:      testing suite
 #
@@ -7,13 +7,14 @@
 #               Christopher Ariza
 #
 # Copyright:    Copyright © 2018 MIT, Digital Humanities Lab
-#               Forked from music21, Copyright © 2006-2016 Michael Scott Cuthbert and the music21
+#               Forked from music21,
+#               Copyright © 2006-2016 Michael Scott Cuthbert and the music21
 #               Project
 # License:      BSD, see license.txt
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 '''
-The testRunner module contains the all important "main_test" function that runs tests
-in a given module.
+The testRunner module contains the all important "main_test" function
+that runs tests in a given module.
 '''
 import doctest
 import inspect
@@ -21,17 +22,18 @@ import re
 import sys
 import unittest
 
-#ALL_OUTPUT = []
+# ALL_OUTPUT = []
 
 ###### test related functions
 from . import common
+
+
 def add_doc_attr_tests_to_suite(suite,
                            moduleVariableLists,
                            outerFilename=None,
                            globs=False,
-                           optionflags=(
-                                        doctest.ELLIPSIS |
-                                        doctest.NORMALIZE_WHITESPACE
+                           optionflags=(doctest.ELLIPSIS
+                                        | doctest.NORMALIZE_WHITESPACE
                                         )):
     '''
     takes a suite, such as a doctest.DocTestSuite and the list of variables
@@ -53,14 +55,14 @@ def add_doc_attr_tests_to_suite(suite,
             continue
         for dockey in docattr:
             documentation = docattr[dockey]
-            #print(documentation)
+            # print(documentation)
             dt = dtp.get_doctest(documentation, globs, dockey, outerFilename, 0)
             if not dt.examples:
                 continue
             dtc = doctest.DocTestCase(dt,
                                       optionflags=optionflags,
                                       )
-            #print(dtc)
+            # print(dtc)
             suite.addTest(dtc)
 
 
@@ -76,7 +78,9 @@ def fixDoctests(doctestSuite):
         for example in dt.examples: # fix Traceback exception differences Py2 to Py3
             example.want = stripAddresses(example.want, '0x...')
 
+
 ADDRESS = re.compile('0x[0-9A-Fa-f]+')
+
 
 def stripAddresses(textString, replacement="ADDRESS"):
     '''
@@ -106,20 +110,20 @@ def stripAddresses(textString, replacement="ADDRESS"):
     return ADDRESS.sub(replacement, textString)
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-def main_test(*testClasses, 
+def main_test(*testClasses,
               run_test=False,
-              default_import=True, 
-              skip_doctest=False, 
-              verbose=False, 
+              default_import=True,
+              skip_doctest=False,
+              verbose=False,
               module_relative=False,
-              import_plus_relative=False, 
+              import_plus_relative=False,
               display_names=False,
               only_doctest=False,
               fail_fast=True):
     '''
-    Takes as its arguments modules 
+    Takes as its arguments modules
     (or a string 'noDocTest' or 'verbose')
     and runs all of these modules through a unittest suite
 
@@ -148,14 +152,14 @@ def main_test(*testClasses,
     # default -- is fail fast.
     if fail_fast:
         optionflags = (
-            doctest.ELLIPSIS |
-            doctest.NORMALIZE_WHITESPACE |
-            doctest.REPORT_ONLY_FIRST_FAILURE
+            doctest.ELLIPSIS
+            | doctest.NORMALIZE_WHITESPACE
+            | doctest.REPORT_ONLY_FIRST_FAILURE
             )
     else:
         optionflags = (
-            doctest.ELLIPSIS |
-            doctest.NORMALIZE_WHITESPACE
+            doctest.ELLIPSIS
+            | doctest.NORMALIZE_WHITESPACE
             )
 
     globs = None
@@ -187,8 +191,8 @@ def main_test(*testClasses,
                 optionflags=optionflags,
                 )
         except ValueError as ve: # no docstrings
-            print("Problem in docstrings [usually a missing r value before " +
-                  "the quotes:] {0}".format(str(ve)))
+            print("Problem in docstrings [usually a missing r value before "
+                  + "the quotes:] {0}".format(str(ve)))
             s1 = unittest.TestSuite()
 
 
@@ -219,9 +223,11 @@ def main_test(*testClasses,
             for k, v in last_frame_globals.items():
                 if not inspect.isclass(v):
                     continue
-                if issubclass(v, unittest.TestCase) and 'Slow' not in k and 'External' not in k:
+                if (issubclass(v, unittest.TestCase)
+                        and 'Slow' not in k
+                        and 'External' not in k):
                     testClasses.append(v)
-                
+
     for t in testClasses:
         if not isinstance(t, str):
             if display_names is True:
@@ -231,9 +237,9 @@ def main_test(*testClasses,
                 tObj = t() # call class
                 # search all names for case-insensitive match
                 for name in dir(tObj):
-                    if (name.lower() == runThisTest.lower() or
-                           name.lower() == ('test' + runThisTest.lower()) or
-                           name.lower() == ('xtest' + runThisTest.lower())):
+                    if (name.lower() == runThisTest.lower()
+                           or name.lower() == ('test' + runThisTest.lower())
+                           or name.lower() == ('xtest' + runThisTest.lower())):
                         runThisTest = name
                         break
                 if hasattr(tObj, runThisTest):
@@ -266,11 +272,8 @@ def main_test(*testClasses,
 
         runner = unittest.TextTestRunner()
         runner.verbosity = verbosity
-        unused_testResult = runner.run(s1)
+        runner.run(s1)
 
 
 if __name__ == '__main__':
     main_test()
-    #from pprint import pprint
-    #pprint(ALL_OUTPUT)
-

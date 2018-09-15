@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 def test_memory(test_function):
     try:
         import guppy
@@ -11,6 +12,7 @@ def test_memory(test_function):
     test_function()
     h = hp.heap()
     return h
+
 
 if __name__ == '__main__':
     pass

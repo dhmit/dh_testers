@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Name:         multiprocesssTest.py
 # Purpose:      Controller for all tests in project run concurrently.
 #
@@ -8,7 +8,7 @@
 # Copyright:    Copyright © 2012-18 MIT DH Lab
 #               forked from music21 Copyright © 2012-15
 # License:      BSD, see license.txt
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 '''
 Multiprocess testing.  Tests all doctests and Test unittest objects in all
 modules that are imported when running "import music21".  Runs threads on
@@ -40,7 +40,7 @@ ModuleResponse = collections.namedtuple('ModuleResponse',
 ModuleResponse.__new__.__defaults__ = (None,) * len(ModuleResponse._fields)
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 def run_one_module_without_imp(arguments):
     modGath, fp = arguments # modGather object, filepath
@@ -49,15 +49,15 @@ def run_one_module_without_imp(arguments):
     moduleObject = modGath.get_module_without_imp(fp)
     globs = common.import_main_module().__dict__.copy()
 
-    #environLocal.printDebug('running %s \n' % fp)
+    # environLocal.printDebug('running %s \n' % fp)
     if moduleObject == 'skip':
         success = '%s is skipped \n' % fp
-        #environLocal.printDebug(success)
+        # environLocal.printDebug(success)
         return ModuleResponse('Skipped', fp, success)
     elif moduleObject == 'notInTree':
         success = ('%s is in the directory but not imported in project. Skipped -- fix!' %
                    modGath._getNamePeriod(fp))
-        #environLocal.printDebug(success)
+        # environLocal.printDebug(success)
         return ModuleResponse("NotInTree", fp, success)
 
 
@@ -119,7 +119,7 @@ def main(test_group=None):
     print('Creating %d processes for multiprocessing' % poolSize)
 
     modGather = commonTest.ModuleGather(useExtended=True)
-    
+
     maxTimeout = 200
     pathsToRun = modGather.modulePaths # [30:60]
 
@@ -151,7 +151,7 @@ def main(test_group=None):
                     mn = ""
                 rt = newResult.runTime
                 if rt is not None:
-                    rt = round(newResult.runTime * 10)/10.0
+                    rt = round(newResult.runTime * 10) / 10
                     if not newResult.errors and not newResult.failures:
                         print("\t\t\t\t{0}: {1} tests in {2} secs".format(
                                             mn,
@@ -194,8 +194,9 @@ def main(test_group=None):
     sys.stderr = normalStdError
     printSummary(summaryOutput, timeStart, pathsToRun)
 
+
 def printSummary(summaryOutput, timeStart, pathsToRun):
-    outStr = ""
+    outStr = ''
     summaryOutputTwo = [i[1] for i in summaryOutput]
     for fp in pathsToRun:
         if fp not in summaryOutputTwo:
@@ -241,8 +242,8 @@ def printSummary(summaryOutput, timeStart, pathsToRun):
                 # not the original errors list! see pickle note above
                 failuresList = moduleResponse.failures
                 errorsFoundSummary.append(
-                    "\n-----------------------------\n" +
-                    "%s had %d ERRORS and %d FAILURES in %d tests after %d seconds:\n" %
+                    "\n-----------------------------\n"
+                    + "%s had %d ERRORS and %d FAILURES in %d tests after %d seconds:\n" %
                     (moduleResponse.moduleName, len(errorsList),
                        len(failuresList), moduleResponse.testsRun, moduleResponse.runTime)
                     + "-----------------------------\n")
@@ -253,12 +254,6 @@ def printSummary(summaryOutput, timeStart, pathsToRun):
                 for f in failuresList:
                     outStr += f + "\n"
                     errorsFoundSummary.append('%s' % (f))
-#                for e in errorsList:
-#                    print e[0], e[1]
-#                    errorsFoundSummary.append('%s: %s' % (e[0], e[1]))
-#                for f in failuresList:
-#                    print f[0], f[1]
-#                    errorsFoundSummary.append('%s: %s' % (f[0], f[1]))
         else:
             otherSummary.append("Unknown return code %s" % moduleResponse)
 
@@ -287,8 +282,6 @@ def printSummary(summaryOutput, timeStart, pathsToRun):
 
     print("Results at " + lastResults)
 
+
 if __name__ == '__main__':
-    #mg = ModuleGather(useExtended=True)
-    #mm = mg.get_module_without_imp('trecento.capua')
-    #print mm
     main()

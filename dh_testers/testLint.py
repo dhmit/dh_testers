@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Name:         testLint.py
 # Purpose:      Controller for all lint based testing.
 #
@@ -8,7 +8,7 @@
 #
 # Copyright:    Copyright © 2009-2010, 2015 Michael Scott Cuthbert and the music21 Project
 # License:      LGPL or BSD, see license.txt
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 # this requires pylint to be installed and available from the command line
 import argparse
@@ -21,7 +21,6 @@ try:
     from pylint.lint import Run as pylintRun
 except ImportError:
     pylintRun = None
-
 
 
 # see feature list here:
@@ -43,8 +42,6 @@ except ImportError:
 #                  so be sure it's really worth it.
 # R0911:	Too many return statements (%s/%s) Used when a function or method has
 #                  too many return statement, making it hard to follow.
-
-
 def main(fnAccept=None, strict=False):
     '''
     `fnAccept` is a list of one or more files to test.  Otherwise runs all.
@@ -92,7 +89,7 @@ def main(fnAccept=None, strict=False):
                 'consider-using-get', # if it can figure out that the default value is something
                             # simple, we will turn back on, but until then, no.
                 'chained-comparison', # sometimes simpler that way
-                #'duplicate-code', # needs to ignore strings -- keeps getting doctests...
+                # 'duplicate-code', # needs to ignore strings -- keeps getting doctests...
                 'too-many-ancestors', # -- 8 is okay.
                 'abstract-class-instantiated', # this trips on the fractions.Fraction() class.
                 'fixme', # known...
@@ -102,7 +99,7 @@ def main(fnAccept=None, strict=False):
                 'bad-whitespace', # maybe later, but "bad" isn't something I necessarily agree with
                 'bad-continuation',  # never remove -- this is a good thing many times.
                 'unpacking-non-sequence', # gets it wrong too often.
-                'too-many-boolean-expressions', #AbstractDiatonicScale.__eq__ shows how this
+                'too-many-boolean-expressions', # AbstractDiatonicScale.__eq__ shows how this
                     # can be fine...
                 'misplaced-comparison-constant', # sometimes 2 < x is what we want
                 'unsubscriptable-object', # unfortunately, thinks that Streams are unsubscriptable.
@@ -185,12 +182,13 @@ def main(fnAccept=None, strict=False):
         acceptable.append(fp)
 
     cmdFile = cmd + acceptable
-    #print(' '.join(cmdFile))
-    #print(fp)
+    # print(' '.join(cmdFile))
+    # print(fp)
     try:
         pylintRun(cmdFile, exit=False)
     except TypeError:
         pylintRun(cmdFile, do_exit=False) # renamed in recent versions
+
 
 def arg_run():
     parser = argparse.ArgumentParser(
@@ -200,23 +198,23 @@ def arg_run():
     parser.add_argument('--strict', action='store_true',
                         help='Run the file in strict mode')
     args = parser.parse_args()
-    #print(args.files)
-    #print(args.strict)
+    # print(args.files)
+    # print(args.strict)
     files = args.files if args.files else None
     if files:
         sfp = common.source_file_path()
         files = [pathlib.Path(f).relative_to(sfp) for f in files]
     main(files, args.strict)
 
+
 if __name__ == '__main__':
     arg_run()
-    #main(sys.argv[1:])
-#     if len(sys.argv) >= 2:
-#         test.main(sys.argv[1:], restoreEnvironmentDefaults=True)
-#     else:
-#         test.main(restoreEnvironmentDefaults=True)
-#
+    # main(sys.argv[1:])
+    #     if len(sys.argv) >= 2:
+    #         test.main(sys.argv[1:], restoreEnvironmentDefaults=True)
+    #     else:
+    #         test.main(restoreEnvironmentDefaults=True)
+    #
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # eof
-

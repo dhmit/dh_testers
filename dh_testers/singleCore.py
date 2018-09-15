@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Name:         test.py
 # Purpose:      Controller for all module tests in music21.
 #
@@ -8,7 +8,7 @@
 #
 # Copyright:    Copyright © 2009-2012 Michael Scott Cuthbert and the music21 Project
 # License:      LGPL or BSD, see license.txt
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 '''
 Controller to run all module tests in the music21 folders.
 
@@ -21,26 +21,25 @@ import sys
 import unittest
 import warnings
 
+from . import common
+from . import commonTest
+from . import coverageProject
+from . import testRunner
+
+
 def custom_formatwarning(msg, *args, **kwargs):
     # ignore everything except the message
     return str(msg) + '\n'
 
+
 warnings.formatwarning = custom_formatwarning
-
-
-from . import common
-
-from . import testRunner
-from . import commonTest
 
 _MOD = 'test.testSingleCoreAll'
 
-from . import coverageProject
 
 # this is designed to be None for all but one system and a Coverage() object
 # for one system.
 cov = coverageProject.get_coverage()
-
 
 
 def main(testGroup=('test',), limit=None, verbosity=2):
@@ -65,7 +64,7 @@ def main(testGroup=('test',), limit=None, verbosity=2):
         globs = main_module.__dict__.copy()
     else:
         globs = {}
-    
+
     for moduleObject in sortMods:
         unitTestCases = []
         if limit is not None:
@@ -78,18 +77,20 @@ def main(testGroup=('test',), limit=None, verbosity=2):
             if not inspect.isclass(global_var):
                 continue
             if issubclass(global_var, unittest.TestCase):
-                if 'test' in testGroup and 'External' not in global_name and 'Slow' not in global_name:
+                if ('test' in testGroup
+                        and 'External' not in global_name
+                        and 'Slow' not in global_name):
                     unitTestCases.append(global_var)
                     no_test_classes = False
-                
-        if (no_test_classes 
+
+        if (no_test_classes
                 and '__init__' not in moduleObject.__file__
                 and 'test' not in moduleObject.__file__):
             warnings.warn('%s has no Test class' % moduleObject)
 
         if not hasattr(moduleObject, 'TestExternal'):
             pass
-            #warnings.warn('%s has no TestExternal class\n' % module)
+            # warnings.warn('%s has no TestExternal class\n' % module)
         else:
             if 'external' in testGroup or 'testExternal' in testGroup:
                 unitTestCases.append(moduleObject.TestExternal)
@@ -109,14 +110,15 @@ def main(testGroup=('test',), limit=None, verbosity=2):
 
         allLocals = [getattr(moduleObject, x) for x in dir(moduleObject)]
 
-        docTestOptions = (doctest.ELLIPSIS|doctest.NORMALIZE_WHITESPACE)
-        testRunner.add_doc_attr_tests_to_suite(s1,
-                                          allLocals,
-                                          outerFilename=moduleObject.__file__,
-                                          globs=globs,
-                                          optionflags=docTestOptions,
-                                          # no checker here
-                                          )
+        docTestOptions = (doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE)
+        testRunner.add_doc_attr_tests_to_suite(
+            s1,
+            allLocals,
+            outerFilename=moduleObject.__file__,
+            globs=globs,
+            optionflags=docTestOptions,
+            # no checker here
+            )
 
     testRunner.fixDoctests(s1)
 
@@ -130,15 +132,14 @@ def main(testGroup=('test',), limit=None, verbosity=2):
 
     coverageProject.stop_coverage(cov)
 
-    if (finalTestResults.errors or
-            finalTestResults.failures or
-            finalTestResults.unexpectedSuccesses):
+    if (finalTestResults.errors
+            or finalTestResults.failures
+            or finalTestResults.unexpectedSuccesses):
         returnCode = 1
     else:
         returnCode = 0
 
     return returnCode
-
 
 
 def travisMain():
@@ -148,7 +149,7 @@ def travisMain():
     exit(returnCode)
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 if __name__ == '__main__':
     # if optional command line arguments are given, assume they are
     # test group arguments
@@ -157,6 +158,5 @@ if __name__ == '__main__':
     else:
         unused_returnCode = main()
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # eof
-

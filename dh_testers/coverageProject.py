@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Name:         coverageProject.py
 # Purpose:      Starts Coverage w/ default arguments
 #
@@ -7,9 +7,10 @@
 #               Michael Scott Cuthbert
 #
 # Copyright:    Copyright © 2014-15 MIT DH Project
-#               forked from music21, Copyright © 2014-15 Michael Scott Cuthbert and the music21 Project
+#               forked from music21, Copyright © 2014-15 Michael Scott Cuthbert
+#               and the music21 Project
 # License:      BSD, see license.txt
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 import sys
 
 omit_modules = [
@@ -23,8 +24,9 @@ exclude_lines = [
                 r'class .*Slow.*',
                 ]
 
+
 def get_coverage(overrideVersion=False):
-    if overrideVersion or sys.version_info.minor == 5: 
+    if overrideVersion or sys.version_info.minor == 5:
         # run on Py 3.5 -- to get Py 3.6/3.7 timing...
         try:
             import coverage
@@ -37,6 +39,7 @@ def get_coverage(overrideVersion=False):
     else:
         cov = None
     return cov
+
 
 def stop_coverage(cov):
     if cov is not None:
