@@ -33,21 +33,25 @@ def likely_python_module(filename):
     return '.'.join(reversed(paths))
 
 
-def get_first_external_stackframe():
+def get_first_external_stackframe(stack_level=0):
     '''
     Get the first FrameInfo that is not in the dh_testers project.
 
     Obviously, this can't be tested in the dh_testers project
 
     Returns None if none are found.
-
+    
+    :param stack_level: describes the number of additional stack levels to go.
     :rtype: inspect.FrameInfo
     '''
     stack = inspect.stack()
     for frame in stack:
         fn = frame.filename
         if 'dh_testers' not in fn and 'python' not in fn:
-            return frame
+            if not stack_level:
+                return frame
+            else:
+                stack_level -= 1
     return None
 
 
